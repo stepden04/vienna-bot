@@ -1,5 +1,6 @@
 from requests import get
 from bs4 import BeautifulSoup
+import re
 
 
 def get_data_from_page(href: str, logger=None) -> dict():
@@ -11,23 +12,28 @@ def get_data_from_page(href: str, logger=None) -> dict():
     Returns:
         Dictionary of title,price etc from a webpage
     """
+    title_regex = re.compile(r'<h1[^>]*>"(.*?)"</h1>')
+    addr_regex = re.compile(r'<div[^>]*>([^<]+)</div>')
+    price_regex = re.compile(r'<span[^>]*>€ ([^<]+)</span>')
+    area_rooms_regex = re.compile(r'<div[^>]*>\s*<span[^>]*>(\d+(?:,\d+)?)</span>')
+
     listing_dict = dict()
 
     soup = BeautifulSoup(get(href).text, 'html.parser')
 
     # TODO add regex
-    title = str(soup.find('h1',
-                          {'data-testid': 'ad-detail-header'}))
-    area = str(soup.find('div',
-                         {'data-testid': 'ad-detail-teaser-attribute-0'}))
-    rooms = str(soup.find('div',
-                          {'data-testid': 'ad-detail-teaser-attribute-1'}))
-    price = str(soup.find('span',
-                          {'data-testid': 'contact-box-price-box-price-value-0'}))
-    kaution = str(soup.find('span',
-                            {'data-testid': 'price-information-freetext-attribute-label-1'}))
-    address = str(soup.find_all('div',
-                                {'data-testid': 'object-location-address'}))
+    title = title_regex.search(str(soup.find('h1',
+                          {'data-testid': 'ad-detail-header'}))).group(1)
+    area = area_rooms_regex.search(str(soup.find('div',
+                         {'data-testid': 'ad-detail-teaser-attribute-0'}))).group(1)
+    rooms = area_rooms_regex.search(str(soup.find('div',
+                          {'data-testid': 'ad-detail-teaser-attribute-1'}))).group(1)
+    price = price_regex.search(str(soup.find('span',
+                          {'data-testid': 'contact-box-price-box-price-value-0'}))).group(1)
+    kaution = price_regex.search(str(soup.find('span',
+                            {'data-testid': 'price-information-freetext-attribute-value-1'}))).group(1)
+    address = addr_regex.search(str(soup.find('div',
+                                {'data-testid': 'object-location-address'}))).group(1)
     # imgs = set(...))
 
     listing_dict.update(title=title, area=area, rooms=rooms,
@@ -35,14 +41,15 @@ def get_data_from_page(href: str, logger=None) -> dict():
 
     try:
         for val in listing_dict.values():
-            logger.info(val, '\n')
+           print(val, '\n')
     except:
         pass
 
     return listing_dict
 
+# TODO images
 
-def get_images(links: set(str)):
+def get_images(links: set()):
     images = set()
 
     for link in links:
