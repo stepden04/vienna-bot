@@ -1,0 +1,42 @@
+import requests
+from bs4 import BeautifulSoup
+import json
+from pprint import pprint
+
+def get_json_listings(session : requests.Session) :
+    base_site = session.get('https://www.willhaben.at/iad/immobilien/mietwohnungen/wien?sort=7&rows=30')
+
+    token = ""
+
+    for i in base_site.headers['set-cookie'].split(';'):
+        if i.startswith('Secure, x-bbx-csrf-token'):
+            token = i[i.index("=")+1:]
+
+    soup = BeautifulSoup(base_site.text, 'html.parser')
+    soup = soup.find('a', {'id' : 'navigator-title-province-Wien'})
+
+    sfId = soup['href'][soup['href'].index("sfId=")+5 : soup['href'].index('&isN')]
+
+    # regex_sfid = re.compile(r'sfId=([\w-]+)')
+    # sfId = regex_sfid.search(str(t)).group(1)
+
+    number_of_rows = 200
+    json_req = session.get(f'https://www.willhaben.at/webapi/iad/search/atz/seo/immobilien/mietwohnungen/wien?sort=7&sfId={sfId}&isNavigation=true&page=1&rows={number_of_rows}', headers={
+        'accept': 'application/json',
+        'x-bbx-csrf-token': token,
+        'x-wh-client': 'api@willhaben.at;responsive_web;server;1.0.0;desktop'
+    })
+
+    return json.loads(json_req.text)["advertSummaryList"]['advertSummary']
+
+summary_list = get_json_listings(requests.Session())
+with open('penis.json','w') as file:
+    file.write(str(summary_list))
+
+title = summary_list[0]['description']
+
+print(summary_list[0]['attributes'])
+
+newlines="{'id': '674301830',\n 'verticalId': 2,\n 'adTypeId': 2,\n 'productId': 227,\n 'advertStatus': {'id': 'active',\n 'description': 'aktiv',\n 'statusId': 50},\n 'description': '*PROVISIONSFREI* Sehr helle und schöne 2-Zimmer-Wohnung für Singles oder Pärchen',\n 'attributes': {'attribute': [{'name': 'LOCATION',\n 'values': ['Wien,\n 11. Bezirk,\n Simmering']},\n {'name': 'POSTCODE',\n 'values': ['1110']},\n {'name': 'STATE',\n 'values': ['Wien']},\n {'name': 'BODY_DYN',\n 'values': ['Zur Vermietung gelangt eine ca. 50 m² große 2-Zimmer-Wohnung. Die gesamte Wohnung ist in einem sehr gepflegten und neuwertigen Zustand. So findet man im gesamten Objekt einen hochwertigen Boden sowie schöne Fliesen im Bad sowie in der Küche und Vorraum,\n...']},\n {'name': 'ORGNAME',\n 'values': ['Place4me']},\n {'name': 'ORG_UUID',\n 'values': ['79370e51-f721-4fbb-92da-be8fc5405854']},\n {'name': 'ESTATE_SIZE/LIVING_AREA',\n 'values': ['50']},\n {'name': 'DISTRICT',\n 'values': ['Wien']},\n {'name': 'HEADING',\n 'values': ['*PROVISIONSFREI* Sehr helle und schöne 2-Zimmer-Wohnung für Singles oder Pärchen']},\n {'name': 'LOCATION_QUALITY',\n 'values': ['1.0']},\n {'name': 'FLOOR',\n 'values': ['1']},\n {'name': 'PUBLISHED',\n 'values': ['1683640620000']},\n {'name': 'COUNTRY',\n 'values': ['Österreich']},\n {'name': 'LOCATION_ID',\n 'values': ['117233']},\n {'name': 'PROPERTY_TYPE',\n 'values': ['Wohnung']},\n {'name': 'NUMBER_OF_ROOMS',\n 'values': ['2']},\n {'name': 'ADTYPE_ID',\n 'values': ['2']},\n {'name': 'PROPERTY_TYPE_ID',\n 'values': ['3']},\n {'name': 'ADID',\n 'values': ['674301830']},\n {'name': 'ORGID',\n 'values': ['1001626']},\n {'name': 'SEO_URL',\n 'values': ['immobilien/d/mietwohnungen/wien/wien-1110-simmering/-provisionsfrei-sehr-helle-und-schoene-2-zimmer-wohnung-fuer-singles-oder-paerchen-674301830/']},\n {'name': 'ALL_IMAGE_URLS',\n 'values': ['0/674/301/830_-454762290.jpg;0/674/301/830_1643503640.jpg;0/674/301/830_1216600066.jpg;0/674/301/830_-292105537.jpg;0/674/301/830_988207281.jpg;0/674/301/830_19913859.jpg;0/674/301/830_-1778006076.jpg;0/674/301/830_-90649945.jpg;0/674/301/830_1462092793.jpg']},\n {'name': 'PUBLISHED_String',\n 'values': ['2023-05-09T15:57:00Z']},\n {'name': 'ESTATE_PREFERENCE',\n 'values': ['27']},\n {'name': 'UPSELLING_AD_SEARCHRESULT',\n 'values': ['true']},\n {'name': 'categorytreeids',\n 'values': ['7276']},\n {'name': 'RENT/PER_MONTH_LETTINGS',\n 'values': ['695.0']},\n {'name': 'ADVERTISER_REF',\n 'values': ['65062']},\n {'name': 'PRODUCT_ID',\n 'values': ['227']},\n {'name': 'MMO',\n 'values': ['0/674/301/830_-454762290.jpg']},\n {'name': 'ROOMS',\n 'values': ['2X2']},\n {'name': 'ADDRESS',\n 'values': ['Krautgasse 2']},\n {'name': 'AD_SEARCHRESULT_LOGO',\n 'values': ['adSearchResult/1001626/logo_place4me__3__3725034298771192922_3788313741774995902.png']},\n {'name': 'COORDINATES',\n 'values': ['48.1606439,\n16.4602181']},\n {'name': 'PRICE',\n 'values': ['695']},\n {'name': 'PRICE_FOR_DISPLAY',\n 'values': ['€ 695']},\n {'name': 'ESTATE_SIZE',\n 'values': ['50']},\n {'name': 'ISPRIVATE',\n 'values': ['0']},\n {'name': 'PROPERTY_TYPE_FLAT',\n 'values': ['true']},\n {'name': 'UNIT_TITLE',\n 'values': ['65062']}]},\n 'advertImageList': {'advertImage': [{'id': 1,\n 'name': '0/674/301/830_-454762290.jpg',\n 'selfLink': 'https://api.willhaben.at/restapi/v2/atimage/674301830/1',\n 'description': 'Cover Image',\n 'mainImageUrl': 'https://cache.willhaben.at/mmo/0/674/301/830_-454762290_hoved.jpg',\n 'thumbnailImageUrl': 'https://cache.willhaben.at/mmo/0/674/301/830_-454762290_thumb.jpg',\n 'referenceImageUrl': 'https://cache.willhaben.at/mmo/0/674/301/830_-454762290.jpg',\n 'similarImageSearchUrl': None,\n 'reference': '0/674/301/830_-454762290.jpg'},\n {'id': 1,\n 'name': '0/674/301/830_1643503640.jpg',\n 'selfLink': 'https://api.willhaben.at/restapi/v2/atimage/674301830/1',\n 'description': 'Cover Image',\n 'mainImageUrl': 'https://cache.willhaben.at/mmo/0/674/301/830_1643503640_hoved.jpg',\n 'thumbnailImageUrl': 'https://cache.willhaben.at/mmo/0/674/301/830_1643503640_thumb.jpg',\n 'referenceImageUrl': 'https://cache.willhaben.at/mmo/0/674/301/830_1643503640.jpg',\n 'similarImageSearchUrl': None,\n 'reference': '0/674/301/830_1643503640.jpg'},\n {'id': 1,\n 'name': '0/674/301/830_1216600066.jpg',\n 'selfLink': 'https://api.willhaben.at/restapi/v2/atimage/674301830/1',\n 'description': 'Cover Image',\n 'mainImageUrl': 'https://cache.willhaben.at/mmo/0/674/301/830_1216600066_hoved.jpg',\n 'thumbnailImageUrl': 'https://cache.willhaben.at/mmo/0/674/301/830_1216600066_thumb.jpg',\n 'referenceImageUrl': 'https://cache.willhaben.at/mmo/0/674/301/830_1216600066.jpg',\n 'similarImageSearchUrl': None,\n 'reference': '0/674/301/830_1216600066.jpg'}]},\n 'selfLink': 'https://api.willhaben.at/restapi/v2/atverz/674301830',\n 'contextLinkList': {'contextLink': [{'id': 'selfLink',\n 'description': 'Identifies this entity',\n 'uri': 'https://api.willhaben.at/restapi/v2/atverz/674301830',\n 'selected': False,\n 'relativePath': '/atverz/674301830',\n 'serviceName': 'iad'},\n {'id': 'seoSelfLink',\n 'description': 'Self reference',\n 'uri': 'https://api.willhaben.at/restapi/v2/atverz/immobilien/d/mietwohnungen/wien/wien-1110-simmering/-provisionsfrei-sehr-helle-und-schoene-2-zimmer-wohnung-fuer-singles-oder-paerchen-674301830/',\n 'selected': False,\n 'relativePath': '/atverz/immobilien/d/mietwohnungen/wien/wien-1110-simmering/-provisionsfrei-sehr-helle-und-schoene-2-zimmer-wohnung-fuer-singles-oder-paerchen-674301830/',\n 'serviceName': 'iad'},\n {'id': 'adDetailLink',\n 'description': 'Self reference to advert via ad detail component',\n 'uri': 'https://publicapi.willhaben.at/atdetail/v1/674301830',\n 'selected': False,\n 'relativePath': '/674301830',\n 'serviceName': 'addetail'},\n {'id': 'removeAdFromFolder',\n 'description': 'Remove ad from any folder',\n 'uri': 'https://api.willhaben.at/restapi/v2/userfolders/remove/674301830',\n 'selected': False,\n 'relativePath': '/userfolders/remove/674301830',\n 'serviceName': 'iad'},\n {'id': 'getFolderSaveLinks',\n 'description': 'Get contextlinks to save the ad in the users folders',\n 'uri': 'https://api.willhaben.at/restapi/v2/userfolders/links/674301830',\n 'selected': False,\n 'relativePath': '/userfolders/links/674301830',\n 'serviceName': 'iad'},\n {'id': 'iadShareLink',\n 'description': 'Share link in iAd',\n 'uri': 'https://www.willhaben.at/iad/object?adId=674301830',\n 'selected': False,\n 'relativePath': '/iad/object?adId=674301830',\n 'serviceName': 'web_url'}]},\n 'advertiserInfo': {'label': 'Place4me',\n 'iconSVG': None,\n 'iconPNG': None,\n 'iconType': 'NONE'},\n 'upsellingOrganisationLogo': 'https://cache.willhaben.at/mmo/logo/adSearchResult/1001626/logo_place4me__3__3725034298771192922_3788313741774995902_medium.png',\n 'teaserAttributes': [{'prefix': None,\n 'value': '50',\n 'postfix': 'm²'},\n {'prefix': None,\n 'value': '2',\n 'postfix': 'Zimmer'}],\n 'children': None}"
+with open('penis1.py','w') as file:
+    file.write(str(newlines))
