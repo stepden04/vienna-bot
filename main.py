@@ -1,56 +1,33 @@
-from telebot import TeleBot, types
+from telebot import TeleBot
 from schedule import every, run_pending,repeat
-from threading import Thread
+from multiprocessing import Process
 from time import sleep
 from dotenv import dotenv_values
-from page import init_titles_file,Listing
-types.Message.parse_photo()
-config = dotenv_values()
+from signal import signal, SIGINT
+from sys import exit
+from db import close_db
 
-bot = TeleBot(config['TOKEN'], parse_mode=None) # bot init
 
-PREVIOUS_LISTINGS = init_titles_file(config["TITLES_PATH"])
+API_TOKEN = dotenv_values()['TOKEN']
+CHANNEL_ID = dotenv_values()['CHANNEL']
 
+bot = TeleBot(API_TOKEN, parse_mode=None)
 
 @bot.message_handler(commands=['start', 'help'])
 def send_start(message):
-    try:
-        bot.reply_to(message, 'cum')
-    except:
-        print('Failed to send a message in send_start()')
+    bot.reply_to(message, 'cum')
 
-
-@repeat(every(15).minutes)
-def update_feed(listing):
-    if check_new_listings():
-        send_listing(listing)
-        PREVIOUS_LISTINGS.add(listing)
-
-@repeat(every(10).seconds)
-def test():
-    try:
-        bot.send_message(chat_id=config['CHANNEL'],text='cum')
-    except:
-        print('Failed to send a message test()')
-
-def check_new_listings():
-    NotImplemented
-
-def is_listed(listing):
-    return listing in PREVIOUS_LISTINGS
-
-def send_listing(listing : Listing):
-    try:        
-        bot.send_media_group(config['CHANNEL'],media=listing.photos_raw)
-    except:
-        print('Cant add images')
-        try:
-            bot.send_message(config['CHANNEL'],text=listing.compose())
-        except:
-            print('Cant send a message in send_listing()')
+def kill_bot(signal_received, frame):
+    print('Killing bot, saving database')
+    close_db()
+    print('Saved database')
+    bot_polling.kill()
+    exit(0)
 
 if __name__ == '__main__':
-    bot_polling = Thread(target=bot.infinity_polling)
+    signal(SIGINT, kill_bot)
+
+    bot_polling = Process(target=bot.infinity_polling)
     bot_polling.start()
     while True:
         run_pending()
