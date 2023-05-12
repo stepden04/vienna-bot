@@ -35,10 +35,14 @@ def get_json_listings(session : requests.Session) :
         raise Exception('Cant get json from a request')
 
 
-def get_tuple_listings(filtered_json):
-    tuples = set()
+def get_listings(filtered_json):
+    tuples = list()
     for each in filtered_json:
         uri = each['contextLinkList']['contextLink'][-1]['uri']
         title = each["description"]
-        tuples.add((uri,title))
+        links = list()
+        for link in each['attributes']['attribute'][21]["values"]:
+            links.append('https://cache.willhaben.at/mmo/'+link)
+            
+        tuples.append((uri,title,links))
     return tuples

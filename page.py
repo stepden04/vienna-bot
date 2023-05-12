@@ -14,12 +14,15 @@ class Listing:
     kaution : str
     address : str
     description : str
+    links : set
     
-    def __init__(self, uri: str, title: str) -> dict():
+    def __init__(self, uri: str, title: str,links : set,download = True) -> dict():
         self.uri = uri
         self.title = title
-
-        self.get_data_from_listings(get(uri).text)
+        self.links = links
+        
+        if download:
+            self.get_data_from_listings(get(uri).text)
 
     def __eq__(self, obj) -> bool:
         return (self.title == obj.title and self.url == obj.url)
@@ -56,3 +59,6 @@ class Listing:
                                          {'data-testid': 'ad-description-Objektbeschreibung'}))
         self.description = html2text(self.description[self.description.index(
             r'Objektbeschreibung">'): self.description.index(r'</div>')])
+        
+    def compose(self):
+        return 'piss' # placeholder
